@@ -1,6 +1,6 @@
 
 image:
-  repository: csi-ccm-plugin
+  repository: ghcr.io/indeedeng/cluster-config-maps
   pullPolicy: IfNotPresent
   tag: "dev"
 
