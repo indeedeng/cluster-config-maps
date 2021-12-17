@@ -1,0 +1,6 @@
+domain: indeed.com
+layout:
+- go.kubebuilder.io/v3
+projectName: cluster-config-map
+repo: indeed.com/cluster-config-map
+version: "3"

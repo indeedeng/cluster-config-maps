@@ -1,0 +1,38 @@
+
+image:
+  repository: csi-ccm-plugin
+  pullPolicy: IfNotPresent
+  tag: "dev"
+
+# -- If set, install and upgrade CRDs through helm chart.
+installCRDs: true
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+updateStrategy: RollingUpdate
+maxUnavailable: 15% # requires RollingUpdate updateStrategy
+
+serviceAccount:
+  # -- Specifies whether a service account should be created.
+  create: true
+  # -- Annotations to add to the service account.
+  annotations: {}
+  # -- The name of the service account to use.
+  name: "csi-ccm-node-sa"
+
+rbac:
+  # -- Specifies whether role and rolebinding resources should be created.
+  create: true
+
+podAnnotations: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+metrics:
+  addr: ":9117"

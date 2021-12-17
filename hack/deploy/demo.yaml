@@ -1,0 +1,34 @@
+---
+kind: ClusterConfigMap
+apiVersion: indeed.com/v1alpha1
+metadata:
+  name: demo-ccm
+data:
+  hello_world.txt: |
+    hello world!
+  test-file.properties: |
+    foo=bar
+    foo.bar=baz
+---
+kind: Pod
+apiVersion: v1
+metadata:
+  name: csi-demo
+spec:
+  terminationGracePeriodSeconds: 1
+  containers:
+    - name: ubuntu
+      image: ubuntu:latest
+      command:
+        - sleep
+        - infinity
+      volumeMounts:
+        - name: csi-demo-volume
+          mountPath: /csi-demo
+  volumes:
+    - name: csi-demo-volume
+      csi:
+        driver: clusterconfigmaps.indeed.com
+        volumeAttributes:
+          name: demo-ccm
+          mode: "0774"
