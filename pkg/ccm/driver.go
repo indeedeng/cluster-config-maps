@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"sync"
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
 
@@ -31,6 +32,9 @@ type driver struct {
 	endpoint string
 
 	publisher VolumePublisher
+
+	volumeLock sync.RWMutex
+	volumes    map[string]bool
 
 	srv *grpc.Server
 }

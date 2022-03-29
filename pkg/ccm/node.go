@@ -45,6 +45,11 @@ func (d *driver) NodePublishVolume(ctx context.Context, req *csi.NodePublishVolu
 		publishErr.WithLabelValues(configMap, "missing volume capabilities").Inc()
 		return nil, status.Error(codes.InvalidArgument, "NodePublishVolume volume capability must be provided")
 	}
+	if d.volumeLocked(req.VolumeId) {
+		publishErr.WithLabelValues("", "concurrent volume publish").Inc()
+		// https://github.com/container-storage-interface/spec/blob/master/spec.md#concurrency
+		return nil, status.Error(codes.Aborted, "NodePublishVolume concurrent publish request, volume is being unpublished")
+	}
 
 	mnt := req.VolumeCapability.GetMount()
 	options := mnt.MountFlags
@@ -96,7 +101,13 @@ func (d *driver) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpublish
 		unpublishErr.WithLabelValues("", "missing target path").Inc()
 		return nil, status.Error(codes.InvalidArgument, "NodeUnpublishVolume Target Path must be provided")
 	}
-
+	if d.volumeLocked(req.VolumeId) {
+		unpublishErr.WithLabelValues("", "concurrent volume unpublish").Inc()
+		// https://github.com/container-storage-interface/spec/blob/master/spec.md#concurrency
+		return nil, status.Error(codes.Aborted, "NodeUnpublishVolume concurrent unpublish request")
+	}
+	d.lockVolume(req.VolumeId)
+	defer d.unlockVolume(req.VolumeId)
 	logger.V(2).Info(fmt.Sprintf("node unpublish volume called for volume id %q target path %q", req.VolumeId, req.TargetPath))
 
 	configMap := "unknown"
@@ -176,4 +187,22 @@ func (d *driver) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoRequest) (
 	return &csi.NodeGetInfoResponse{
 		NodeId: d.nodeID,
 	}, nil
+}
+
+func (d *driver) lockVolume(volumeID string) {
+	d.volumeLock.Lock()
+	defer d.volumeLock.Unlock()
+	d.volumes[volumeID] = true
+}
+
+func (d *driver) unlockVolume(volumeID string) {
+	d.volumeLock.Lock()
+	defer d.volumeLock.Unlock()
+	delete(d.volumes, volumeID)
+}
+
+func (d *driver) volumeLocked(volumeID string) bool {
+	d.volumeLock.RLock()
+	defer d.volumeLock.RUnlock()
+	return d.volumes[volumeID]
 }
