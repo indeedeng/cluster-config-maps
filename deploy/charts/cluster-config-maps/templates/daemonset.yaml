@@ -39,10 +39,6 @@ spec:
             - "--v=5"
             - "--csi-address=$(ADDRESS)"
             - "--kubelet-registration-path=$(DRIVER_REG_SOCK_PATH)"
-          lifecycle:
-            preStop:
-              exec:
-                command: ["/bin/sh", "-c", "rm -rf /registration/clusterconfigmaps.indeed.com /registration/clusterconfigmaps.indeed.com.sock"]
           env:
             - name: ADDRESS
               value: /csi/csi.sock
@@ -52,6 +48,14 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
+          livenessProbe:
+            exec:
+              command:
+                - /csi-node-driver-registrar
+                - "--kubelet-registration-path=$(DRIVER_REG_SOCK_PATH)"
+                - "--mode=kubelet-registration-probe"
+            initialDelaySeconds: 30
+            timeoutSeconds: 15
           volumeMounts:
             - name: plugin-dir
               mountPath: /csi/

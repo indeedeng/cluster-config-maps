@@ -46,10 +46,12 @@ func (d *driver) NodePublishVolume(ctx context.Context, req *csi.NodePublishVolu
 		return nil, status.Error(codes.InvalidArgument, "NodePublishVolume volume capability must be provided")
 	}
 	if d.volumeLocked(req.VolumeId) {
-		publishErr.WithLabelValues("", "concurrent volume publish").Inc()
+		publishErr.WithLabelValues(configMap, "concurrent volume publish").Inc()
 		// https://github.com/container-storage-interface/spec/blob/master/spec.md#concurrency
 		return nil, status.Error(codes.Aborted, "NodePublishVolume concurrent publish request, volume is being unpublished")
 	}
+	d.lockVolume(req.VolumeId)
+	defer d.unlockVolume(req.VolumeId)
 
 	mnt := req.VolumeCapability.GetMount()
 	options := mnt.MountFlags
