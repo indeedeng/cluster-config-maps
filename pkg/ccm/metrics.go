@@ -45,12 +45,6 @@ var (
 		Help:      "node unpublish volume errors for cluster config maps",
 	}, []string{"name", "reason"})
 
-	cleanup = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: "ccm",
-		Subsystem: "node",
-		Name:      "cleanup_volume_success",
-		Help:      "successful cleanup operations for data and metadata kept for cluster config maps",
-	}, []string{"volumeId"})
 	cleanupTime = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Namespace: "ccm",
 		Subsystem: "node",
@@ -62,7 +56,7 @@ var (
 		Subsystem: "node",
 		Name:      "cleanup_volume_error",
 		Help:      "failed cleanup operations for data and metadata kept for cluster config maps",
-	}, []string{"volumeId", "reason"})
+	}, []string{"reason"})
 )
 
 func init() {
@@ -70,5 +64,5 @@ func init() {
 	Metrics.MustRegister(collectors.NewGoCollector())
 	Metrics.MustRegister(publish, publishTime, publishErr)
 	Metrics.MustRegister(unpublish, unpublishTime, unpublishErr)
-	Metrics.MustRegister(cleanup, cleanupTime, cleanupErr)
+	Metrics.MustRegister(cleanupTime, cleanupErr)
 }

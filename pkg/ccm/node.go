@@ -96,6 +96,7 @@ func (d *driver) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpublish
 		unpublishErr.WithLabelValues("", "missing target path").Inc()
 		return nil, status.Error(codes.InvalidArgument, "NodeUnpublishVolume Target Path must be provided")
 	}
+
 	logger.V(2).Info(fmt.Sprintf("node unpublish volume called for volume id %q target path %q", req.VolumeId, req.TargetPath))
 
 	configMap := "unknown"

@@ -40,7 +40,7 @@ func cleanupDataDir() error {
 		if !dirEntry.IsDir() {
 			// we shouldn't have any bare files here
 			logger.Info("[cleanup] unexpected file in data dir: " + path.Join(dataDir, dirEntry.Name()))
-			cleanupErr.WithLabelValues(dirEntry.Name(), "unexpected file in metadata dir").Inc()
+			cleanupErr.WithLabelValues("unexpected file in metadata dir").Inc()
 			continue
 		}
 
@@ -50,14 +50,15 @@ func cleanupDataDir() error {
 		refs, err := mounter.GetMountRefs(dataPath)
 		if err != nil {
 			logger.Error(err, "cleanup failed to lookup refs for "+dataPath+" - skipping...")
-			cleanupErr.WithLabelValues(volumeID, "error listing mount refs").Inc()
+			cleanupErr.WithLabelValues("error listing mount refs").Inc()
 			continue
 		}
 		if len(refs) == 0 {
 			logger.V(6).Info(fmt.Sprintf("[cleanup] mount refs for %s: %v", dataPath, refs))
+			// deleting the dataPath directory signals that it is safe to remove the volume metadata
 			if err := os.RemoveAll(dataPath); err != nil {
 				logger.Error(err, "cleanup failed to delete "+dataPath+" - skipping...")
-				cleanupErr.WithLabelValues(volumeID, "removing metadata dir failed").Inc()
+				cleanupErr.WithLabelValues("removing metadata dir failed").Inc()
 				continue
 			}
 			logger.V(6).Info(fmt.Sprintf("[cleanup] deleted %s successfully", dataPath))
@@ -80,12 +81,14 @@ func cleanupMetadataDir() error {
 		if !dirEntry.IsDir() {
 			// we shouldn't have any bare files here
 			logger.Info("[cleanup] unexpected file in metadata dir: " + path.Join(metadataDir, dirEntry.Name()))
-			cleanupErr.WithLabelValues(dirEntry.Name(), "unexpected file in metadata dir").Inc()
+			cleanupErr.WithLabelValues("unexpected file in metadata dir").Inc()
 			continue
 		}
 
 		volumeID := dirEntry.Name()
 		metadataPath := path.Join(metadataDir, volumeID)
+
+		// if the data dir associated with this volume still exists, assume the data is still being used
 		dataPath := path.Join(dataDir, volumeID)
 		_, err := os.Stat(dataPath)
 		if err == nil {
@@ -94,13 +97,13 @@ func cleanupMetadataDir() error {
 		}
 		if !errors.Is(err, fs.ErrNotExist) {
 			logger.Error(err, fmt.Sprintf("[cleanup] unexpected error stating data path for volume %q", volumeID))
-			cleanupErr.WithLabelValues(volumeID, "unexpected error stating metadata dir").Inc()
+			cleanupErr.WithLabelValues("unexpected error stating metadata dir").Inc()
 			continue
 		}
 		logger.V(6).Info(fmt.Sprintf("[cleanup] removing metadata for %q", metadataPath))
 		if err := os.RemoveAll(metadataPath); err != nil {
 			logger.Error(err, "cleanup failed to delete "+metadataPath+" - skipping...")
-			cleanupErr.WithLabelValues(volumeID, "removing metadata dir failed").Inc()
+			cleanupErr.WithLabelValues("removing metadata dir failed").Inc()
 			continue
 		}
 		logger.V(6).Info(fmt.Sprintf("[cleanup] deleted %s successfully", metadataPath))
