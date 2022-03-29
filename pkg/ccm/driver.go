@@ -44,6 +44,7 @@ func newDriver(nodeID, endpoint string, publisher VolumePublisher) *driver {
 		nodeID:    nodeID,
 		endpoint:  endpoint,
 		publisher: publisher,
+		volumes:   make(map[string]bool),
 	}
 }
 

@@ -11,7 +11,7 @@ A Helm chart for Kubernetes
 | affinity | object | `{}` |  |
 | fullnameOverride | string | `""` |  |
 | image.pullPolicy | string | `"IfNotPresent"` |  |
-| image.repository | string | `"csi-ccm-plugin"` |  |
+| image.repository | string | `"ghcr.io/indeedeng/cluster-config-maps/csi-ccm-plugin"` |  |
 | image.tag | string | `"dev"` |  |
 | imagePullSecrets | list | `[]` |  |
 | installCRDs | bool | `true` | If set, install and upgrade CRDs through helm chart. |
