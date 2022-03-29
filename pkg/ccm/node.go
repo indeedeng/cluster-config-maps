@@ -22,7 +22,7 @@ const storageDir = "/csi-ccm-data"
 
 func (d *driver) NodePublishVolume(ctx context.Context, req *csi.NodePublishVolumeRequest) (*csi.NodePublishVolumeResponse, error) {
 	start := time.Now()
-	logger.V(2).Info("node publish volume called, target: " + req.StagingTargetPath)
+	logger.V(2).Info("node publish volume called, target: " + req.TargetPath)
 	if req.VolumeContext == nil {
 		publishErr.WithLabelValues("", "missing volume context").Inc()
 		return nil, status.Error(codes.InvalidArgument, "NodePublishVolume volume context must be provided")

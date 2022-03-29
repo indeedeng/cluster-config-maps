@@ -54,12 +54,10 @@ func (n *nodePublisher) Mount(ctx context.Context, meta *ClusterConfigMapMeta) e
 		return nil
 	}
 
-	logger.V(2).Info("mounting the volume")
 	if err := mounter.Mount(meta.Directory.Path, meta.TargetPath, meta.FSType, meta.BindOpts); err != nil {
 		return fmt.Errorf("failed to bind mount %q to %q with fs %q", meta.Directory.Path, meta.TargetPath, meta.FSType)
 	}
 
-	logger.V(2).Info("bind mounting the volume is finished")
 	return nil
 }
 
