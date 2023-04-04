@@ -1,5 +1,8 @@
 # Build the binary
-FROM golang:1.17 as builder
+FROM --platform=$BUILDPLATFORM golang:1.17 as builder
+
+ARG BUILDPLATFORM
+ARG TARGETARCH
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
@@ -15,7 +18,7 @@ COPY cmd/ cmd/
 COPY pkg/ pkg/
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o ccm-csi-plugin cmd/ccm-csi-plugin/main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=$TARGETARCH go build -a -o ccm-csi-plugin cmd/ccm-csi-plugin/main.go
 
 FROM alpine:3.14
 
