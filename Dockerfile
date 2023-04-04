@@ -1,5 +1,5 @@
 # Build the binary
-FROM --platform=$BUILDPLATFORM golang:1.17 as builder
+FROM --platform=$BUILDPLATFORM golang:1.20 as builder
 
 ARG BUILDPLATFORM
 ARG TARGETARCH
@@ -20,7 +20,7 @@ COPY pkg/ pkg/
 # Build
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=$TARGETARCH go build -a -o ccm-csi-plugin cmd/ccm-csi-plugin/main.go
 
-FROM alpine:3.14
+FROM alpine:3.17
 
 RUN apk add --no-cache ca-certificates e2fsprogs findmnt
 
