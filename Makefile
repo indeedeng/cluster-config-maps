@@ -8,6 +8,9 @@ MAKEFLAGS     += --warn-undefined-variables
 ARCH = amd64
 BUILD_ARGS ?=
 
+DOCKER_BUILD_PLATFORMS = linux/amd64,linux/arm64
+DOCKER_BUILDX_BUILDER ?= "mybuilder"
+
 # default target is build
 .DEFAULT_GOAL := all
 .PHONY: all
@@ -206,7 +209,17 @@ docker.push:
 	@docker push $(IMAGE_REGISTRY):$(VERSION)
 	@$(OK) docker push
 
-# RELEASE_TAG is tag to promote. Default is promooting to main branch, but can be overriden
+docker.buildx.setup:
+	@$(INFO) docker buildx setup
+	@docker buildx ls 2>/dev/null | grep -q $(DOCKER_BUILDX_BUILDER) || docker buildx create --name $(DOCKER_BUILDX_BUILDER) --driver docker-container --bootstrap --use
+	@$(OK) docker buildx setup
+
+docker.buildx: docker.buildx.setup
+	@$(INFO) docker buildx
+	@docker buildx build --platform $(DOCKER_BUILD_PLATFORMS) -t $(IMAGE_REGISTRY):$(VERSION) $(BUILD_ARGS) --push .
+	@$(OK) docker buildx
+
+# RELEASE_TAG is tag to promote. Default is promoting to main branch, but can be overriden
 # to promote a tag to a specific version.
 RELEASE_TAG ?= main
 SOURCE_TAG ?= $(VERSION)
