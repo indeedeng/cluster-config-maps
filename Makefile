@@ -193,17 +193,6 @@ docker.buildx.setup:
 	@docker buildx ls 2>/dev/null | grep -vq $(DOCKER_BUILDX_BUILDER) || docker buildx create --name $(DOCKER_BUILDX_BUILDER) --driver docker-container --driver-opt network=host --bootstrap --use
 	@$(OK) docker buildx setup
 
-docker.promote:
-	@$(INFO) promoting $(SOURCE_TAG) to $(RELEASE_TAG)
-	docker manifest inspect $(IMAGE_REGISTRY):$(SOURCE_TAG) > .tagmanifest
-	for digest in $$(jq -r '.manifests[].digest' < .tagmanifest); do \
-		docker pull $(IMAGE_REGISTRY)@$$digest; \
-	done
-	docker manifest create $(IMAGE_REGISTRY):$(RELEASE_TAG) \
-		$$(jq -j '"--amend $(IMAGE_REGISTRY)@" + .manifests[].digest + " "' < .tagmanifest)
-	docker manifest push $(IMAGE_REGISTRY):$(RELEASE_TAG)
-	@$(OK) docker push $(RELEASE_TAG) \
-
 # ====================================================================================
 # Help
 
