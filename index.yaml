@@ -2,8 +2,18 @@ apiVersion: v1
 entries:
   cluster-config-maps:
   - apiVersion: v2
+    appVersion: 0.3.0
+    created: "2023-10-17T13:37:32.810825292-05:00"
+    description: A Helm chart for Kubernetes
+    digest: 54b03cb61029dc86e7987dbd93042c8d443853d1437193c9a5f5e3a90f362b81
+    name: cluster-config-maps
+    type: application
+    urls:
+    - https://indeedeng.github.io/cluster-config-maps/cluster-config-maps-0.3.0.tgz
+    version: 0.3.0
+  - apiVersion: v2
     appVersion: 0.2.0
-    created: "2022-03-29T16:06:49.833675887-05:00"
+    created: "2023-10-17T13:37:32.810505354-05:00"
     description: A Helm chart for Kubernetes
     digest: 7d48244122e680c80d2f3e33b57f52e65092e9a0e53b84318e4a3d756a47b37e
     name: cluster-config-maps
@@ -13,7 +23,7 @@ entries:
     version: 0.2.1
   - apiVersion: v2
     appVersion: 0.2.0
-    created: "2022-03-29T16:06:49.833369025-05:00"
+    created: "2023-10-17T13:37:32.810037947-05:00"
     description: A Helm chart for Kubernetes
     digest: e8a959662ab99bcd3c45e11800454f68b1077baaa19dfc3ac8554fc8abc7aeae
     name: cluster-config-maps
@@ -21,4 +31,4 @@ entries:
     urls:
     - https://indeedeng.github.io/cluster-config-maps/cluster-config-maps-0.2.0.tgz
     version: 0.2.0
-generated: "2022-03-29T16:06:49.832926193-05:00"
+generated: "2023-10-17T13:37:32.809489014-05:00"
