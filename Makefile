@@ -37,11 +37,6 @@ else
 VERSION ?= $(shell git describe --dirty --always --tags --exclude 'helm*' | sed 's/-/./2' | sed 's/-/./2')
 endif
 
-# RELEASE_TAG is tag to promote. Default is promoting to main branch, but can be overriden
-# to promote a tag to a specific version.
-RELEASE_TAG ?= main
-SOURCE_TAG ?= $(VERSION)
-
 # ====================================================================================
 # Colors
 
