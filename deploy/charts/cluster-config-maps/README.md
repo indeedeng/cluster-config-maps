@@ -1,6 +1,6 @@
 # cluster-config-maps
 
-![Version: 0.2.1](https://img.shields.io/badge/Version-0.2.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.2.0](https://img.shields.io/badge/AppVersion-0.2.0-informational?style=flat-square)
+![Version: 0.3.0](https://img.shields.io/badge/Version-0.3.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.3.0](https://img.shields.io/badge/AppVersion-0.3.0-informational?style=flat-square)
 
 A Helm chart for Kubernetes
 
@@ -11,8 +11,8 @@ A Helm chart for Kubernetes
 | affinity | object | `{}` |  |
 | fullnameOverride | string | `""` |  |
 | image.pullPolicy | string | `"IfNotPresent"` |  |
-| image.repository | string | `"ghcr.io/indeedeng/cluster-config-maps/csi-ccm-plugin"` |  |
-| image.tag | string | `"dev"` |  |
+| image.repository | string | `"ghcr.io/indeedeng/cluster-config-maps"` |  |
+| image.tag | string | `"main"` |  |
 | imagePullSecrets | list | `[]` |  |
 | installCRDs | bool | `true` | If set, install and upgrade CRDs through helm chart. |
 | maxUnavailable | string | `"15%"` |  |

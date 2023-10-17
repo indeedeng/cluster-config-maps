@@ -2,3 +2,4 @@ bin
 bin/*
 cover.out
 .idea
+.tagmanifest

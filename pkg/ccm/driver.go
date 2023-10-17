@@ -24,9 +24,8 @@ var logger = ctrl.Log.WithName("driver")
 
 // Driver implements the following CSI interfaces:
 //
-//   csi.IdentityServer
-//   csi.NodeServer
-//
+//	csi.IdentityServer
+//	csi.NodeServer
 type driver struct {
 	nodeID   string
 	endpoint string

@@ -9,7 +9,7 @@ ARCH = amd64
 BUILD_ARGS ?=
 
 DOCKER_BUILD_PLATFORMS = linux/amd64,linux/arm64
-DOCKER_BUILDX_BUILDER ?= "mybuilder"
+DOCKER_BUILDX_BUILDER ?= "cluster-config-maps"
 
 # default target is build
 .DEFAULT_GOAL := all
@@ -26,12 +26,7 @@ HELM_DIR    ?= deploy/charts/cluster-config-maps
 
 OUTPUT_DIR  ?= bin
 
-# Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
-ifeq (,$(shell go env GOBIN))
-GOBIN=$(shell go env GOPATH)/bin
-else
-GOBIN=$(shell go env GOBIN)
-endif
+RUN_GOLANGCI_LINT := go run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.54.2
 
 # check if there are any existing `git tag` values
 ifeq ($(shell git tag),)
@@ -41,6 +36,11 @@ else
 # use tags
 VERSION ?= $(shell git describe --dirty --always --tags --exclude 'helm*' | sed 's/-/./2' | sed 's/-/./2')
 endif
+
+# RELEASE_TAG is tag to promote. Default is promoting to main branch, but can be overriden
+# to promote a tag to a specific version.
+RELEASE_TAG ?= main
+SOURCE_TAG ?= $(VERSION)
 
 # ====================================================================================
 # Colors
@@ -96,30 +96,14 @@ build-%: generate ## Build binary for the specified arch
 		go build -o '$(OUTPUT_DIR)/ccm-csi-plugin-$*' ./cmd/ccm-csi-plugin/main.go
 	@$(OK) go build $*
 
-# Check install of golanci-lint
-lint.check:
-	@if ! golangci-lint --version > /dev/null 2>&1; then \
-		echo -e "\033[0;33mgolangci-lint is not installed: run \`\033[0;32mmake lint.install\033[0m\033[0;33m\` or install it from https://golangci-lint.run\033[0m"; \
-		exit 1; \
-	fi
+.PHONY: lint
+lint: ## run golangci-lint
+	$(RUN_GOLANGCI_LINT) run
 
-.PHONY: lint-install
-lint-install: ## installs golangci-lint to the go bin dir
-	@if ! golangci-lint --version > /dev/null 2>&1; then \
-		echo "Installing golangci-lint"; \
-		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(BIN_DIR) v1.43.0; \
-	fi
-
-lint: lint.check ## run golangci-lint
-	@if ! golangci-lint run; then \
-		echo -e "\033[0;33mgolangci-lint failed: some checks can be fixed with \`\033[0;32mmake fmt\033[0m\033[0;33m\`\033[0m"; \
-		exit 1; \
-	fi
-
-fmt: lint.check ## ensure consistent code style
+fmt: ## ensure consistent code style
 	@go mod tidy
 	@go fmt ./...
-	@golangci-lint run --fix > /dev/null 2>&1 || true
+	$(RUN_GOLANGCI_LINT) run --fix > /dev/null 2>&1 || true
 	@$(OK) Ensured consistent code style
 
 generate: ## Generate code and crds
@@ -199,30 +183,15 @@ serve-docs:
 
 build.all: docker.build helm.build
 
-docker.build: $(addprefix build-,$(ARCH)) ## Build the docker image
+docker.build: docker.buildx.setup ## Build the docker image
 	@$(INFO) docker build
-	@docker build . $(BUILD_ARGS) -t $(IMAGE_REGISTRY):$(VERSION)
+	@docker buildx build --platform $(DOCKER_BUILD_PLATFORMS) -t $(IMAGE_REGISTRY):$(VERSION) $(BUILD_ARGS) --push .
 	@$(OK) docker build
-
-docker.push:
-	@$(INFO) docker push
-	@docker push $(IMAGE_REGISTRY):$(VERSION)
-	@$(OK) docker push
 
 docker.buildx.setup:
 	@$(INFO) docker buildx setup
-	@docker buildx ls 2>/dev/null | grep -q $(DOCKER_BUILDX_BUILDER) || docker buildx create --name $(DOCKER_BUILDX_BUILDER) --driver docker-container --bootstrap --use
+	@docker buildx ls 2>/dev/null | grep -vq $(DOCKER_BUILDX_BUILDER) || docker buildx create --name $(DOCKER_BUILDX_BUILDER) --driver docker-container --driver-opt network=host --bootstrap --use
 	@$(OK) docker buildx setup
-
-docker.buildx: docker.buildx.setup
-	@$(INFO) docker buildx
-	@docker buildx build --platform $(DOCKER_BUILD_PLATFORMS) -t $(IMAGE_REGISTRY):$(VERSION) $(BUILD_ARGS) --push .
-	@$(OK) docker buildx
-
-# RELEASE_TAG is tag to promote. Default is promoting to main branch, but can be overriden
-# to promote a tag to a specific version.
-RELEASE_TAG ?= main
-SOURCE_TAG ?= $(VERSION)
 
 docker.promote:
 	@$(INFO) promoting $(SOURCE_TAG) to $(RELEASE_TAG)

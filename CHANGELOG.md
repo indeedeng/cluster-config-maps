@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2023-10-17
+### Changed
+- Updated dependencies on k8s apis
+
 ## [0.2.0] - 2022-03-29
 ### Changed
 - Removed volumeID from prometheus metrics tags

@@ -1,8 +1,8 @@
 
 image:
-  repository: ghcr.io/indeedeng/cluster-config-maps/csi-ccm-plugin
+  repository: ghcr.io/indeedeng/cluster-config-maps
   pullPolicy: IfNotPresent
-  tag: "dev"
+  tag: "main"
 
 # -- If set, install and upgrade CRDs through helm chart.
 installCRDs: true
