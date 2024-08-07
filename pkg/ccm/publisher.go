@@ -7,7 +7,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 
@@ -89,7 +88,7 @@ func (n *nodePublisher) Populate(ctx context.Context, ccmm *ClusterConfigMapMeta
 		target := path.Join(dir, filename)
 		logger.V(5).Info("writing data to target " + target)
 
-		err = ioutil.WriteFile(target, []byte(contents), mode)
+		err = os.WriteFile(target, []byte(contents), mode)
 		if err != nil {
 			return fmt.Errorf("failed to write configmap to target %q: %w", target, err)
 		}

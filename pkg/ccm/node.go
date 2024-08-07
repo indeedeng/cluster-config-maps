@@ -45,12 +45,15 @@ func (d *driver) NodePublishVolume(ctx context.Context, req *csi.NodePublishVolu
 		publishErr.WithLabelValues(configMap, "missing volume capabilities").Inc()
 		return nil, status.Error(codes.InvalidArgument, "NodePublishVolume volume capability must be provided")
 	}
-	if d.volumeLocked(req.VolumeId) {
+	d.volumeLock.Lock()
+	if d.volumeBusy[req.VolumeId] {
+		d.volumeLock.Unlock()
 		publishErr.WithLabelValues(configMap, "concurrent volume publish").Inc()
 		// https://github.com/container-storage-interface/spec/blob/master/spec.md#concurrency
 		return nil, status.Error(codes.Aborted, "NodePublishVolume concurrent publish request, volume is being unpublished")
 	}
-	d.lockVolume(req.VolumeId)
+	d.volumeBusy[req.VolumeId] = true
+	d.volumeLock.Unlock()
 	defer d.unlockVolume(req.VolumeId)
 
 	mnt := req.VolumeCapability.GetMount()
@@ -103,12 +106,15 @@ func (d *driver) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpublish
 		unpublishErr.WithLabelValues("", "missing target path").Inc()
 		return nil, status.Error(codes.InvalidArgument, "NodeUnpublishVolume Target Path must be provided")
 	}
-	if d.volumeLocked(req.VolumeId) {
+	d.volumeLock.Lock()
+	if d.volumeBusy[req.VolumeId] {
+		d.volumeLock.Unlock()
 		unpublishErr.WithLabelValues("", "concurrent volume unpublish").Inc()
 		// https://github.com/container-storage-interface/spec/blob/master/spec.md#concurrency
 		return nil, status.Error(codes.Aborted, "NodeUnpublishVolume concurrent unpublish request")
 	}
-	d.lockVolume(req.VolumeId)
+	d.volumeBusy[req.VolumeId] = true
+	d.volumeLock.Unlock()
 	defer d.unlockVolume(req.VolumeId)
 	logger.V(2).Info(fmt.Sprintf("node unpublish volume called for volume id %q target path %q", req.VolumeId, req.TargetPath))
 
@@ -191,20 +197,8 @@ func (d *driver) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoRequest) (
 	}, nil
 }
 
-func (d *driver) lockVolume(volumeID string) {
-	d.volumeLock.Lock()
-	defer d.volumeLock.Unlock()
-	d.volumes[volumeID] = true
-}
-
 func (d *driver) unlockVolume(volumeID string) {
 	d.volumeLock.Lock()
 	defer d.volumeLock.Unlock()
-	delete(d.volumes, volumeID)
-}
-
-func (d *driver) volumeLocked(volumeID string) bool {
-	d.volumeLock.RLock()
-	defer d.volumeLock.RUnlock()
-	return d.volumes[volumeID]
+	delete(d.volumeBusy, volumeID)
 }

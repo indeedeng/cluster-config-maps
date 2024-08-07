@@ -3,7 +3,6 @@ package ccm
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"strconv"
@@ -69,7 +68,7 @@ func (c *ClusterConfigMapMeta) WriteMetadata() error {
 		return fmt.Errorf("failed to marshal metadata: %w", err)
 	}
 
-	return ioutil.WriteFile(path.Join(dir, "metadata.json"), bytes, defaultMode)
+	return os.WriteFile(path.Join(dir, "metadata.json"), bytes, defaultMode)
 }
 
 // ReadMetadata unmarshalls and parses the json metadata of cluster config map from the filesystem.
@@ -79,7 +78,7 @@ func ReadMetadata(volumeID string) (*ClusterConfigMapMeta, error) {
 		return nil, fmt.Errorf("failed to get metadata dir: %w", err)
 	}
 
-	bytes, err := ioutil.ReadFile(path.Join(dir, "metadata.json"))
+	bytes, err := os.ReadFile(path.Join(dir, "metadata.json"))
 	if err != nil {
 		return nil, fmt.Errorf("failed to read metadata.json for volume %q: %w", volumeID, err)
 	}

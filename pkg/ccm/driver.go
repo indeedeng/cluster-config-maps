@@ -32,18 +32,18 @@ type driver struct {
 
 	publisher VolumePublisher
 
-	volumeLock sync.RWMutex
-	volumes    map[string]bool
+	volumeLock sync.Mutex
+	volumeBusy map[string]bool
 
 	srv *grpc.Server
 }
 
 func newDriver(nodeID, endpoint string, publisher VolumePublisher) *driver {
 	return &driver{
-		nodeID:    nodeID,
-		endpoint:  endpoint,
-		publisher: publisher,
-		volumes:   make(map[string]bool),
+		nodeID:     nodeID,
+		endpoint:   endpoint,
+		publisher:  publisher,
+		volumeBusy: make(map[string]bool),
 	}
 }
 
