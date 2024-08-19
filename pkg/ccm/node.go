@@ -152,7 +152,6 @@ func (d *driver) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpublish
 		unpublishErr.WithLabelValues(configMap, "volume was already unmounted").Inc()
 	}
 	logger.V(2).Info(fmt.Sprintf("node unpublish volume succeeded for volume id %q target path %q", req.VolumeId, req.TargetPath))
-	doCleanup(configMap, req.VolumeId, req.TargetPath)
 	unpublish.WithLabelValues(configMap).Inc()
 	unpublishTime.WithLabelValues(configMap).Observe(time.Since(start).Seconds())
 	return &csi.NodeUnpublishVolumeResponse{}, nil

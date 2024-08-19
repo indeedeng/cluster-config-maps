@@ -11,7 +11,6 @@ import (
 	"sync"
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
-
 	"google.golang.org/grpc"
 
 	"k8s.io/client-go/kubernetes"
@@ -99,6 +98,8 @@ func (d *driver) Run() error {
 		}
 		return resp, err
 	}
+
+	doCleanup()
 
 	d.srv = grpc.NewServer(grpc.UnaryInterceptor(errHandler))
 	csi.RegisterIdentityServer(d.srv, d)

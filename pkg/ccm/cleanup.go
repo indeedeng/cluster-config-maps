@@ -11,15 +11,13 @@ import (
 	"k8s.io/mount-utils"
 )
 
-func doCleanup(configMap, volumeID, targetPath string) {
+func doCleanup() {
 	start := time.Now()
 	if err := cleanupDataDir(); err != nil {
-		logger.Error(err, fmt.Sprintf("failed to cleanup on node unpublish volume for volume id %q and target path %q", volumeID, targetPath))
-		unpublishErr.WithLabelValues(configMap, "failed to clean up volume data").Inc()
+		logger.Error(err, "failed to cleanup")
 	}
 	if err := cleanupMetadataDir(); err != nil {
-		logger.Error(err, fmt.Sprintf("failed to cleanup metadata on node unpublish volume for volume id %q and target path %q", volumeID, targetPath))
-		unpublishErr.WithLabelValues(configMap, "failed to clean up volume metadata").Inc()
+		logger.Error(err, "failed to cleanup metadata")
 	}
 	cleanupTime.WithLabelValues().Observe(time.Since(start).Seconds())
 }
@@ -32,6 +30,10 @@ func cleanupDataDir() error {
 	dataDir := path.Join(storageDir, "data")
 	dirEntries, err := os.ReadDir(dataDir)
 	if err != nil {
+		if os.IsNotExist(err) {
+			logger.Info("[cleanup] no data dir, skipping cleanup")
+			return nil
+		}
 		return fmt.Errorf("failed to list dir entries for %q: %w", dataDir, err)
 	}
 
